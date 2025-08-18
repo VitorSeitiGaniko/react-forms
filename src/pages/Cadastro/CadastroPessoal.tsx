@@ -51,7 +51,7 @@ const CadastroPessoal = ({ setShowEndereco }: CadastroPessoalProps) => {
     // setShowEndereco(true);
   }
 
-  const validateEmail = {
+  const validateEmail: { [key: string]: (val: string) => boolean | string } = {
     obrigatorio: (val: string) => !!val || 'O campo email é obrigatório.',
     formatoValido: (val: string) =>
       /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) ||
@@ -117,7 +117,7 @@ const CadastroPessoal = ({ setShowEndereco }: CadastroPessoalProps) => {
     },
   ];
 
-  const dynamicForm = [
+  const dynamicFormCourse = [
     {
       label: 'Curso',
       id: 'course',
@@ -136,15 +136,54 @@ const CadastroPessoal = ({ setShowEndereco }: CadastroPessoalProps) => {
     },
   ];
 
-  const { fields, append, remove } = useFieldArray({
+  const dynamicFormExperience = [
+    {
+      label: 'Empresa',
+      id: 'company',
+      validation: {
+        required: 'A empresa é obrigatória',
+      },
+      type: 'text',
+    },
+    {
+      label: 'Cargo',
+      id: 'position',
+      validation: {
+        required: 'O cargo é obrigatório',
+      },
+      type: 'text',
+    },
+  ];
+
+  const {
+    fields: fieldsCourse,
+    append: appendCourse,
+    remove: removeCourse,
+  } = useFieldArray({
     control,
-    name: 'dynamicForm',
+    name: 'dynamicFormCourse',
   });
 
-  function addDynamicForm() {
-    append({
+  const {
+    fields: fieldsExperience,
+    append: appendExperience,
+    remove: removeExperience,
+  } = useFieldArray({
+    control,
+    name: 'dynamicFormExperience',
+  });
+
+  function addDynamicFormCourse() {
+    appendCourse({
       course: '',
-      year: '22',
+      year: '',
+    });
+  }
+
+  function addDynamicFormExperience() {
+    appendExperience({
+      company: '',
+      position: '',
     });
   }
 
@@ -184,41 +223,83 @@ const CadastroPessoal = ({ setShowEndereco }: CadastroPessoalProps) => {
           </Fieldset>
         ))}
 
-        {fields.map((field, index) => (
+        {fieldsCourse.map((field, index) => (
           <div key={field.id}>
-            {dynamicForm.map((dynamicField) => (
+            {dynamicFormCourse.map((dynamicField) => (
               <Fieldset key={`${field.id}-${dynamicField.id}`}>
-                <Label htmlFor={`dynamicForm.${index}.${dynamicField.id}`}>
+                <Label
+                  htmlFor={`dynamicFormCourse.${index}.${dynamicField.id}`}
+                >
                   {dynamicField.label}
                 </Label>
 
                 <Input
-                  id={`dynamicForm.${index}.${dynamicField.id}`}
+                  id={`dynamicFormCourse.${index}.${dynamicField.id}`}
                   type={dynamicField.type}
                   {...register(
-                    `dynamicForm.${index}.${dynamicField.id}`,
+                    `dynamicFormCourse.${index}.${dynamicField.id}`,
                     dynamicField.validation
                   )}
                 />
 
-                {Array.isArray(errors.dynamicForm) &&
-                  errors.dynamicForm[index]?.[dynamicField.id] && (
+                {Array.isArray(errors.dynamicFormCourse) &&
+                  errors.dynamicFormCourse[index]?.[dynamicField.id] && (
                     <ErrorMessage>
                       {String(
-                        (errors.dynamicForm[index] as any)?.[dynamicField.id]
-                          ?.message
+                        (errors.dynamicFormCourse[index] as any)?.[
+                          dynamicField.id
+                        ]?.message
                       )}
                     </ErrorMessage>
                   )}
               </Fieldset>
             ))}
-            <Button type="button" onClick={() => remove(index)}>
+            <Button type="button" onClick={() => removeCourse(index)}>
               Remover
             </Button>
           </div>
         ))}
+        <Button onClick={addDynamicFormCourse}>Adicionar curso</Button>
 
-        <Button onClick={addDynamicForm}>Adicionar curso</Button>
+        {fieldsExperience.map((field, index) => (
+          <div key={field.id}>
+            {dynamicFormExperience.map((dynamicField) => (
+              <Fieldset key={`${field.id}-${dynamicField.id}`}>
+                <Label
+                  htmlFor={`dynamicFormExperience.${index}.${dynamicField.id}`}
+                >
+                  {dynamicField.label}
+                </Label>
+
+                <Input
+                  id={`dynamicFormExperience.${index}.${dynamicField.id}`}
+                  type={dynamicField.type}
+                  {...register(
+                    `dynamicFormExperience.${index}.${dynamicField.id}`,
+                    dynamicField.validation
+                  )}
+                />
+
+                {Array.isArray(errors.dynamicFormExperience) &&
+                  errors.dynamicFormExperience[index]?.[dynamicField.id] && (
+                    <ErrorMessage>
+                      {String(
+                        (errors.dynamicFormExperience[index] as any)?.[
+                          dynamicField.id
+                        ]?.message
+                      )}
+                    </ErrorMessage>
+                  )}
+              </Fieldset>
+            ))}
+            <Button type="button" onClick={() => removeExperience(index)}>
+              Remover
+            </Button>
+          </div>
+        ))}
+        <Button onClick={addDynamicFormExperience}>
+          Adicionar experiência
+        </Button>
 
         <Button type="submit">Avançar</Button>
       </Form>
