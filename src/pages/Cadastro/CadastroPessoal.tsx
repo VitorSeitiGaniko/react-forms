@@ -8,7 +8,7 @@ import {
   Titulo,
   ErrorMessage,
 } from '../../components';
-import { useForm } from 'react-hook-form';
+import { useFieldArray, useForm } from 'react-hook-form';
 import InputMask from 'react-input-mask';
 
 // SOBRE O USE MASK
@@ -22,6 +22,11 @@ import InputMask from 'react-input-mask';
 // Retorna um objeto com várias props (como onChange, onBlur, ref, etc.) que
 // são necessárias para o controle do campo pelo formulário.
 
+// SOBRE O CONTROL
+// O control conecta com o formulário principal, permitindo que você controle
+// o estado e a validação dos campos de forma mais eficiente.
+// Garante que os dados dos campos dinâmicos sejam incluídos no objeto final do formulário
+
 interface CadastroPessoalProps {
   setShowEndereco: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -33,6 +38,7 @@ const CadastroPessoal = ({ setShowEndereco }: CadastroPessoalProps) => {
     formState: { errors },
     watch,
     reset,
+    control,
   } = useForm({
     mode: 'all',
   });
@@ -41,8 +47,8 @@ const CadastroPessoal = ({ setShowEndereco }: CadastroPessoalProps) => {
 
   function handleSubmitForm(dados: any) {
     console.log('Dados do formulário:', dados);
-    localStorage.setItem('pessoal', JSON.stringify(dados));
-    setShowEndereco(true);
+    // localStorage.setItem('pessoal', JSON.stringify(dados));
+    // setShowEndereco(true);
   }
 
   const validateEmail = {
@@ -111,6 +117,37 @@ const CadastroPessoal = ({ setShowEndereco }: CadastroPessoalProps) => {
     },
   ];
 
+  const dynamicForm = [
+    {
+      label: 'Curso',
+      id: 'course',
+      validation: {
+        required: 'O curso é obrigatório',
+      },
+      type: 'text',
+    },
+    {
+      label: 'ano',
+      id: 'year',
+      validation: {
+        required: 'O ano é obrigatório',
+      },
+      type: 'text',
+    },
+  ];
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'dynamicForm',
+  });
+
+  function addDynamicForm() {
+    append({
+      course: '',
+      year: '22',
+    });
+  }
+
   useEffect(() => {
     const dados = localStorage.getItem('pessoal');
     if (dados) {
@@ -146,6 +183,43 @@ const CadastroPessoal = ({ setShowEndereco }: CadastroPessoalProps) => {
             )}
           </Fieldset>
         ))}
+
+        {fields.map((field, index) => (
+          <div key={field.id}>
+            {dynamicForm.map((dynamicField) => (
+              <Fieldset key={`${field.id}-${dynamicField.id}`}>
+                <Label htmlFor={`dynamicForm.${index}.${dynamicField.id}`}>
+                  {dynamicField.label}
+                </Label>
+
+                <Input
+                  id={`dynamicForm.${index}.${dynamicField.id}`}
+                  type={dynamicField.type}
+                  {...register(
+                    `dynamicForm.${index}.${dynamicField.id}`,
+                    dynamicField.validation
+                  )}
+                />
+
+                {Array.isArray(errors.dynamicForm) &&
+                  errors.dynamicForm[index]?.[dynamicField.id] && (
+                    <ErrorMessage>
+                      {String(
+                        (errors.dynamicForm[index] as any)?.[dynamicField.id]
+                          ?.message
+                      )}
+                    </ErrorMessage>
+                  )}
+              </Fieldset>
+            ))}
+            <Button type="button" onClick={() => remove(index)}>
+              Remover
+            </Button>
+          </div>
+        ))}
+
+        <Button onClick={addDynamicForm}>Adicionar curso</Button>
+
         <Button type="submit">Avançar</Button>
       </Form>
     </>
